@@ -1,0 +1,1 @@
+{"img_size": 256, "threshold": 0.8737863898277283, "threshold_raw": 0.8737863898277283, "tune_mode": "youden", "target_specificity": null, "val_counts": {"normal_files": 206, "pathology_files": 193}}
