@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>CT Chest — One-class QA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; max-width: 880px; margin: 32px auto; padding: 0 16px;}
+    h1 {margin-bottom: 8px;}
+    .card {border: 1px solid #e5e7eb; border-radius: 8px; padding:16px; margin:16px 0;}
+    .row {display:flex; gap:16px; align-items:center; flex-wrap:wrap;}
+    label {font-weight:600;}
+    input[type="number"], input[type="text"] {padding:8px; border:1px solid #ccc; border-radius:6px;}
+    .btn {background:#111827; color:#fff; border:none; padding:10px 16px; border-radius:8px; cursor:pointer;}
+    .btn:disabled {opacity:.6; cursor:default;}
+    .muted{color:#6b7280; font-size:14px}
+    table {border-collapse: collapse; width:100%;}
+    th, td {border-bottom:1px solid #eee; padding:8px; text-align:left;}
+    .pill {display:inline-block; background:#eef2ff; color:#3730a3; border-radius:999px; padding:2px 10px; font-size:12px;}
+    .flash {background:#fee2e2; color:#991b1b; padding:10px 12px; border-radius:8px; margin:12px 0;}
+  </style>
+</head>
+<body>
+  <h1>CT Chest — One-class инференс</h1>
+  <p class="muted">Загрузите ZIP с DICOM-файлами. Модель проверит каждый файл. Поддерживается только Modality=<b>CT</b>, BodyPartExamined=<b>CHEST</b>.</p>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      {% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form class="card" action="{{ url_for('analyze') }}" method="post" enctype="multipart/form-data">
+    <div class="row">
+      <div>
+        <label>ZIP-файл:&nbsp;</label>
+        <input type="file" name="zip_file" accept=".zip" required>
+      </div>
+      <div>
+        <label>img_size:&nbsp;</label>
+        <input type="number" name="img_size" placeholder="по умолчанию из stats.json" min="64" step="32">
+      </div>
+      <div>
+        <label>threshold:&nbsp;</label>
+        <input type="text" name="threshold" placeholder="по умолчанию из stats.json / 0.5">
+      </div>
+      <div>
+        <button class="btn" type="submit">Анализировать</button>
+      </div>
+    </div>
+  </form>
+
+  {% if summary %}
+  <div class="card">
+    <h2>Результаты</h2>
+    <p class="muted">Порог классификации: <b>{{ '%.6f'|format(threshold) }}</b></p>
+    <table>
+      <tr><th>Папок (top-level)</th><td>{{ summary.folders_analyzed }}</td></tr>
+      <tr><th>Слайсов (файлов)</th><td>{{ summary.slices_analyzed }}</td></tr>
+      <tr><th>Норма</th><td><span class="pill">{{ summary.normals }}</span></td></tr>
+      <tr><th>Патология</th><td><span class="pill">{{ summary.pathologies }}</span></td></tr>
+      <tr><th>Ошибок</th><td>{{ summary.failures }}</td></tr>
+      <tr><th>Время обработки</th><td>{{ '%.2f'|format(summary.elapsed) }} сек</td></tr>
+    </table>
+
+    {% if summary.failure_reasons %}
+      <h3>Причины ошибок</h3>
+      <table>
+        <tr><th>Причина</th><th>Кол-во</th></tr>
+        {% for reason, cnt in summary.failure_reasons.items() %}
+          <tr><td>{{ reason }}</td><td>{{ cnt }}</td></tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+
+    {% if job_id %}
+      <p><a class="btn" href="{{ url_for('download', job_id=job_id) }}">Скачать отчёт (XLSX)</a></p>
+    {% endif %}
+  </div>
+  {% endif %}
+</body>
+</html>
