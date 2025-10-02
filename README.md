@@ -8,6 +8,13 @@
 p_pathology = 1 - p_norm
 ```
 
+##Для клонирования репозитория выполнить
+```
+git clone git@github.com:aLittleBitEcologist/deepbreath.git
+```
+
+Скачать model.keras (https://disk.yandex.ru/d/yVKsGvw8OWfQWA) в ./artifacts
+
 ---
 
 ## Возможности
